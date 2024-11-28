@@ -1,12 +1,14 @@
 import 'mocha';
 
 import { expect } from '@integration/testing-tools';
-import { Ensure, equals, isPresent, not } from '@serenity-js/assertions';
-import { actorCalled, LogicError } from '@serenity-js/core';
+import { and, Ensure, equals, includes, isPresent, not } from '@serenity-js/assertions';
+import { actorCalled, LogicError, Wait } from '@serenity-js/core';
 import { trimmed } from '@serenity-js/core/lib/io';
 import {
     By,
+    Drag,
     isActive,
+    isVisible,
     Key,
     Navigate,
     Page,
@@ -128,7 +130,7 @@ describe('PageElement', () => {
                 const location = activity.instantiationLocation();
 
                 expect(location.path.basename()).to.equal('PageElement.spec.ts');
-                expect(location.line).to.equal(127);
+                expect(location.line).to.equal(129);
                 expect(location.column).to.equal(72);
             });
 
@@ -169,7 +171,7 @@ describe('PageElement', () => {
                     const location = activity.instantiationLocation();
 
                     expect(location.path.basename()).to.equal('PageElement.spec.ts');
-                    expect(location.line).to.equal(168);
+                    expect(location.line).to.equal(170);
                     expect(location.column).to.equal(87);
                 });
 
@@ -253,7 +255,7 @@ describe('PageElement', () => {
                 const location = activity.instantiationLocation();
 
                 expect(location.path.basename()).to.equal('PageElement.spec.ts');
-                expect(location.line).to.equal(252);
+                expect(location.line).to.equal(254);
                 expect(location.column).to.equal(41);
             });
 
@@ -311,6 +313,20 @@ describe('PageElement', () => {
         const description = PageElement.located(By.css('iframe')).toString();
 
         expect(description).to.equal(`page element located by css ('iframe')`);
+    });
+
+    const draggable = () => PageElement.located(By.id('source')).describedAs('draggable');
+    const dropzone = () => PageElement.located(By.id('target')).describedAs('drop zone');
+    const dragEventOutput = () => PageElement.located(By.id('output')).describedAs('drag event output box');
+
+    describe('dragTo()', () => {
+        it('should successfully drag an element to the specified dropzone', () =>
+            actorCalled('Francesca').attemptsTo(
+                Navigate.to('/screenplay/models/page-element/drag_and_drop.html'),
+                Drag.the(draggable()).to(dropzone()),
+                Wait.until(Text.of(dragEventOutput()), and(includes('dragstart:'), includes('dragover:'), includes('drop:'))),
+                Wait.until(draggable().of(dropzone()), isVisible()), // dragging doesn't necessarily change the location of the HTML element to be inside the dropzone, but our example does
+            ));
     });
 });
 
